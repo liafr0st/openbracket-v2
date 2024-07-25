@@ -1,0 +1,25 @@
+{
+  "name": "openbracket-v2",
+  "version": "1.0.0",
+  "description": "Tournaments run simply",
+  "main": "index.js",
+  "scripts": {
+    "test": "dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taliafr0st/openbracket-v2.git"
+  },
+  "author": "Amy Hurrell",
+  "license": "CC-BY-NC-SA-4.0",
+  "bugs": {
+    "url": "https://github.com/taliafr0st/openbracket-v2/issues"
+  },
+  "homepage": "https://github.com/taliafr0st/openbracket-v2#readme",
+  "dependencies": {
+    "neo4j-driver": "^5.22.0",
+    "svelte": "^4.2.18",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.4"
+  }
+}
