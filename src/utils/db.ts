@@ -5,7 +5,7 @@ import { identifyError, OpenBracketError } from './OpenBracketError';
 export const driver = neo4j.driver(cfg.neo4juri, neo4j.auth.basic(cfg.neo4jusername, cfg.neo4jpassword));
 
 export async function startup(): Promise<ServerInfo> {
-    const srvInfo = await driver.getServerInfo({ database: 'obarchivedb' })
+    const srvInfo = await driver.getServerInfo({ database: cfg.neo4jdbname })
         .catch(e => {
             throw identifyError(e);
         })

@@ -2,7 +2,7 @@
   "name": "openbracket-v2",
   "version": "1.0.0",
   "description": "Tournaments run simply",
-  "main": "index.js",
+  "main": "build/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",

@@ -2,6 +2,6 @@
     "neo4jusername": "neo4j",
     "neo4jpassword": "password",
     "neo4juri": "neo4j://localhost:7687",
-    "neo4jdbname": "obarchivedb",
+    "neo4jdbname": "openbracketdb",
     "cookiesecret": "secret"
 }

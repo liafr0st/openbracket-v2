@@ -22,3 +22,7 @@ const listener = app.listen(port, function () {
 });
 
 db.startup();
+
+process.on('exit', function () {
+    db.shutdown();
+});
