@@ -22,7 +22,7 @@ export function bracketStructure(count: number) : BracketStructure {
     positionsBySeed[0] = 0;
     positions[0] = 0;
     for (let i = 1; i < count; i++) {
-        let j = Math.floor(Math.log(2)/Math.log(i));
+        let j = Math.floor(Math.log(i)/Math.log(2));
         let k = rounds-j-1;
 
         let maxpoint : number = Math.pow(2,j+1)-1;
