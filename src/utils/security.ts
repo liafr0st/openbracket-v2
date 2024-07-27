@@ -42,6 +42,6 @@ Retrieved: 02/03/2024
 */
 export function generateSalt(): string {
     const buffer = crypto.randomBytes(4);
-    const secret = base32.encode(buffer).replace(/=/g, "").substring(0, 24);
+    const secret = base32.encode(buffer).replace(/=/g, "").substring(0, 4);
     return secret;
 };

@@ -3,6 +3,8 @@ import express, { Request, Response } from 'express';
 import session from 'express-session';
 import * as db from "./utils/db";
 import cfg from "../config.json";
+import * as Tournament from "./Tournament";
+import { identifyError, OpenBracketError } from './utils/OpenBracketError';
 
 const app = express();
 app.use(
@@ -22,6 +24,24 @@ const listener = app.listen(port, function () {
 });
 
 db.startup();
+
+app.get("/", async function (req: Request, res: Response) {
+    res.status(200);
+    res.set('Content-Type', 'application/json');
+    res.send({msg: "hello world"})
+});
+
+app.post("/tournament", async function (req: Request, res: Response) {
+    res.status(200);
+    const u = await Tournament.create(req)
+        .catch(err => {
+            const e = identifyError(err)
+            res.status(e.code);
+            return e;
+        })
+    res.set('Content-Type', 'application/json');
+    res.send(u);
+});
 
 process.on('exit', function () {
     db.shutdown();
