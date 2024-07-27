@@ -107,7 +107,7 @@ MERGE (${currMatchTxt})-[:HAS_PARTICIPANT {type: "lower"}]->(p${brktStruct.posit
 
         }
     }
-    query = query + "RETURN t";
+    query = query + "RETURN ID(t)";
 
     // console.log("Matches Genned")
 
@@ -126,13 +126,18 @@ MERGE (${currMatchTxt})-[:HAS_PARTICIPANT {type: "lower"}]->(p${brktStruct.posit
         query, queryParams, { database: cfg.neo4jdbname }
     )
 
+    const map = records.map<Integer>(function (record) : Integer {
+        return record.get("ID(t)")
+    });
+
     // console.log(keys);
     // console.log(records);
     // console.log(summary);
+    // console.log(map);
 
     const res : TournamentCreateRes = {
-        name : "",
-        id : 0
+        name: name,
+        id: map[0].toInt()
     }
 
     return res;

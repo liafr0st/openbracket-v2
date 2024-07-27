@@ -1,5 +1,6 @@
 {
     "name": "My First Bracket",
     "password": "testpwd1",
-    "participants": "ameLia\nFaded\nz0eshi\nViolet\nNines\nKarina"
+    "participants": "ameLia\nFaded\nz0eshi\nViolet\nNines\nKarina",
+    "isSeeded": true
 }
