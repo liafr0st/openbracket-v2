@@ -1,4 +1,6 @@
-import { BracketStructure } from "./types";
+import { nullmatch } from "./nullobjects";
+import { OpenBracketError } from "./OpenBracketError";
+import { BracketStructure, OBMatch } from "./types";
 
 /*
 Reference: https://stackoverflow.com/a/12646864
@@ -38,4 +40,23 @@ export function bracketStructure(count: number) : BracketStructure {
 
     return res;
 
+}
+
+export function findMatch(id: string, matchTree: OBMatch) : string[] {
+    let match : string[];
+    if (matchTree.id == id) { return [] };
+    try {
+        if (matchTree.matchUpper) {
+            match = findMatch(id, matchTree.matchUpper)
+            match.push("upper")
+            return match
+        }
+    } catch {
+        if (matchTree.matchLower) {
+            match = findMatch(id, matchTree.matchLower)
+            match.push("lower")
+            return match
+        }
+    }
+    throw new OpenBracketError("Match not in tree",500);
 }

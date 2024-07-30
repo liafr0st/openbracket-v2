@@ -43,6 +43,18 @@ app.post("/tournament", async function (req: Request, res: Response) {
     res.send(u);
 });
 
+app.get("/tournament", async function (req: Request, res: Response) {
+    res.status(200);
+    const u = await Tournament.read(req)
+        .catch(err => {
+            const e = identifyError(err)
+            res.status(e.code);
+            return e;
+        })
+    res.set('Content-Type', 'application/json');
+    res.send(u);
+});
+
 process.on('exit', function () {
     db.shutdown();
 });

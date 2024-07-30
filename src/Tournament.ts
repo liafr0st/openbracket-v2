@@ -6,11 +6,12 @@ import * as obmath from "./utils/obmath"
 import { Request } from 'express';
 import { OpenBracketError } from "./utils/OpenBracketError";
 import { StringLiteral } from "typescript";
-import { BracketStructure } from "./utils/types";
+import { BracketStructure, HashTable, HasMatchProperties, HasResultProperties, MatchProperties, OBMatch, OBMatchIncomplete, OBParticipantScorePair, OBTournament, ParticipantProperties, TournamentProperties } from "./utils/types";
+import { nullmatch } from "./utils/nullobjects";
 
 interface TournamentCreateRes {
     name: string;
-    id: number;
+    id: string;
 }
 
 interface TournamentCreateQuery {
@@ -51,10 +52,10 @@ export async function create(req: Request): Promise<TournamentCreateRes> {
 
     if (!isSeeded) {participantsList = obmath.shuffleParticipants(participantsList)}
 
-    let query: string = `CREATE (t:Tournament {name: $name, passwordHash: $passwordHash, salt: $salt})\n`;
+    let query: string = `CREATE (t:Tournament {name: $name, passwordHash: $passwordHash, salt: $salt, uuid: randomUUID()})\n`;
 
     for (let i = 0; i<participantsCount; i++) {
-        query = query + `CREATE (p${i}:Participant {name: $participants[${i}]})\n`
+        query = query + `CREATE (p${i}:Participant {name: $participants[${i}], uuid: randomUUID()})\n`
     }
 
     // console.log("Participants Genned")
@@ -64,7 +65,7 @@ export async function create(req: Request): Promise<TournamentCreateRes> {
     // console.log(brktStruct)
 
     query = query + `\
-CREATE (r0m0:Match)
+CREATE (r0m0:Match {uuid: randomUUID()})
 MERGE (r0m0)<-[:HAS_MATCH {type: "root"}]-(t)\n`
 
     if (brktStruct.rounds >= 3) {
@@ -78,7 +79,7 @@ MERGE (r0m0)<-[:HAS_MATCH {type: "root"}]-(t)\n`
                 let currMatchTxt : string = `r${i}m${j}`
 
                 query = query + `\
-CREATE (${currMatchTxt}:Match)
+CREATE (${currMatchTxt}:Match {uuid: randomUUID()})
 MERGE (${currMatchTxt})<-[:HAS_MATCH {type: "${isUpper}"}]-(${prevMatchTxt})\n`
 
             }
@@ -95,19 +96,19 @@ MERGE (${currMatchTxt})<-[:HAS_MATCH {type: "${isUpper}"}]-(${prevMatchTxt})\n`
             let currMatchTxt : string = `r${brktStruct.rounds-1}m${i}`
 
             if (brktStruct.positions[2*i]==-1 || brktStruct.positions[2*i+1]==-1) {
-                query = query + `MERGE (${prevMatchTxt})-[:HAS_PARTICIPANT {type: "upper"}]->(p${brktStruct.positions[2*i]})\n`
+                query = query + `MERGE (${prevMatchTxt})-[:HAS_RESULT {type: "upper"}]->(p${brktStruct.positions[2*i]})\n`
                 continue
             };
     
             query = query + `\
-CREATE (${currMatchTxt}:Match)
+CREATE (${currMatchTxt}:Match {uuid: randomUUID()})
 MERGE (${currMatchTxt})<-[:HAS_MATCH {type: "${isUpper}"}]-(${prevMatchTxt})
-MERGE (${currMatchTxt})-[:HAS_PARTICIPANT {type: "upper"}]->(p${brktStruct.positions[2*i]})
-MERGE (${currMatchTxt})-[:HAS_PARTICIPANT {type: "lower"}]->(p${brktStruct.positions[2*i+1]})\n`
+MERGE (${currMatchTxt})-[:HAS_RESULT {type: "upper"}]->(p${brktStruct.positions[2*i]})
+MERGE (${currMatchTxt})-[:HAS_RESULT {type: "lower"}]->(p${brktStruct.positions[2*i+1]})\n`
 
         }
     }
-    query = query + "RETURN ID(t)";
+    query = query + "RETURN t";
 
     // console.log("Matches Genned")
 
@@ -126,8 +127,8 @@ MERGE (${currMatchTxt})-[:HAS_PARTICIPANT {type: "lower"}]->(p${brktStruct.posit
         query, queryParams, { database: cfg.neo4jdbname }
     )
 
-    const map = records.map<Integer>(function (record) : Integer {
-        return record.get("ID(t)")
+    const map = records.map<TournamentProperties>(function (record) : TournamentProperties {
+        return record.get("t").properties
     });
 
     // console.log(keys);
@@ -137,9 +138,143 @@ MERGE (${currMatchTxt})-[:HAS_PARTICIPANT {type: "lower"}]->(p${brktStruct.posit
 
     const res : TournamentCreateRes = {
         name: name,
-        id: map[0].toInt()
+        id: map[0].uuid
     }
 
     return res;
+
+}
+
+interface TournamentReadQuery {
+    id: number;
+};
+
+export async function login(req: Request) : Promise<void> {
+
+    const id: number = req.body.id;
+    const pwd: string = req.body.password;
+
+    if (!id) { throw new OpenBracketError("No tournament specified") };
+    if (!pwd) { throw new OpenBracketError("Incorrect password", 401) };
+
+    const queryParams : TournamentReadQuery = {
+        id: id
+    }
+
+    const query : string = `\
+    MATCH (t:Tournament) WHERE ID(t) = $id
+    RETURN t`
+
+    const { keys, records, summary } = await db.driver.executeQuery(
+        query, queryParams, { database: cfg.neo4jdbname }
+    )
+
+    const map = records.map<TournamentProperties>(function (record) : TournamentProperties {
+        return record.get("t")
+    });
+
+    const pwdHash = security.hashPassword(pwd+map[0].salt)
+
+    if (pwdHash != map[0].passwordHash) {
+        throw new OpenBracketError("Incorrect password", 401)
+    }
+
+}
+
+export async function read(req: Request) : Promise<OBTournament> {
+    
+    const id: number = req.body.id;
+
+    if (!id) { throw new OpenBracketError("No tournament specified") };
+
+    const queryParams : TournamentReadQuery = {
+        id: id
+    }
+
+    const query : string = `\
+    MATCH (t:Tournament)-[:HAS_MATCH*1..8]->(m:Match) WHERE t.uuid = $id
+    OPTIONAL MATCH (t)-[:HAS_MATCH]->(rm:Match)
+    OPTIONAL MATCH (m)-[hasresult:HAS_RESULT]->(p:Participant)
+    OPTIONAL MATCH (m)-[hasmatch:HAS_MATCH]->(m2:Match)
+    RETURN t, rm, m, hasmatch, m2, hasresult, p`
+
+    const { keys, records, summary } = await db.driver.executeQuery(
+        query, queryParams, { database: cfg.neo4jdbname }
+    )
+
+    const tournament : TournamentProperties = records[0].get("t").properties
+    const rootMatch : MatchProperties = records[0].get("rm").properties
+
+    const participantHashTable : HashTable<boolean> = {};
+    const matchStack: OBMatchIncomplete[] = [];
+
+    const res : OBTournament = {
+        id: tournament.uuid,
+        rootMatch: nullmatch,
+        participants: []
+    }
+
+    matchStack.push({id: rootMatch.uuid});
+
+    for (let record of records) {
+        let match : MatchProperties = record.get("m2").properties
+        let parentMatch : MatchProperties = record.get("m").properties
+        let matchRel : HasMatchProperties = record.get("hasmatch").properties
+        let participant : ParticipantProperties = record.get("p").properties
+        let result : HasResultProperties = record.get("hasresult").properties
+
+        if (!participantHashTable[participant.uuid]) {
+            participantHashTable[participant.uuid] = true;
+            res.participants.push({id: participant.uuid, name: participant.name})
+        }
+
+        let isParticipantUpper = (result.type == "upper") ? true : false;
+
+        let tempResult : OBParticipantScorePair = {
+            participantId: participant.uuid,
+            score: (result.score) ? result.score : undefined 
+        }
+
+        let matchFound = false;
+        let tempMatch : OBMatch;
+        for (let match_ of matchStack) {
+            if (matchFound) { continue };
+            if (match_.id == match.uuid) {
+                if (isParticipantUpper) { match_.resultUpper = tempResult } else { match_.resultLower = tempResult };
+                matchFound = true;
+            }
+        }
+
+        if (!matchFound) {
+            tempMatch = {
+                id: match.uuid,
+                resultUpper: (isParticipantUpper) ? tempResult : undefined,
+                resultLower: (isParticipantUpper) ? undefined : tempResult,
+                parentId: parentMatch.uuid,
+                type: matchRel.type
+            }
+            matchStack.push(tempMatch);
+        }
+
+    }
+
+    while (matchStack.length > 1) {
+        let match : OBMatch = matchStack.pop()
+        let isMatchUpper = (match.type == "upper") ? true : false;
+
+        let matchFound = false;
+        for (let match_ of matchStack) {
+            if (matchFound) { continue };
+            if (match_.id == match.parentId) {
+                if (isMatchUpper) { match_.matchUpper = match } else { match_.matchLower = match };
+                matchFound = true;
+            }
+        }
+    }
+    res.rootMatch = matchStack[0];
+
+    console.log(records)
+
+    return res
 
 }
