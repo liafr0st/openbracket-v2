@@ -6,7 +6,7 @@ import * as obmath from "./utils/obmath"
 import { Request } from 'express';
 import { OpenBracketError } from "./utils/OpenBracketError";
 import { StringLiteral } from "typescript";
-import { BracketStructure, HashTable, HasMatchProperties, HasResultProperties, MatchProperties, OBMatch, OBMatchIncomplete, OBParticipantScorePair, OBTournament, ParticipantProperties, TournamentProperties } from "./utils/types";
+import { BracketStructure, HashTable, HasMatchProperties, HasResultProperties, MatchProperties, OBMatch, OBParticipantScorePair, OBTournament, ParticipantProperties, TournamentProperties } from "./utils/types";
 import { nullmatch } from "./utils/nullobjects";
 
 interface TournamentCreateRes {
@@ -206,7 +206,7 @@ export async function read(req: Request) : Promise<OBTournament> {
     const rootMatch : MatchProperties = records[0].get("rm").properties
 
     const participantHashTable : HashTable<boolean> = {};
-    const matchStack: OBMatchIncomplete[] = [];
+    const matchStack: OBMatch[] = [];
 
     const res : OBTournament = {
         id: tournament.uuid,
@@ -259,7 +259,10 @@ export async function read(req: Request) : Promise<OBTournament> {
     }
 
     while (matchStack.length > 1) {
-        let match : OBMatch = matchStack.pop()
+        let match : OBMatch | undefined = matchStack.pop()
+        if (!match) {
+            throw new OpenBracketError("Critical TS error", 500);
+        }
         let isMatchUpper = (match.type == "upper") ? true : false;
 
         let matchFound = false;
