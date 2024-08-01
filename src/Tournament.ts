@@ -202,6 +202,7 @@ export async function read(req: Request) : Promise<OBTournament> {
 
     const res : OBTournament = {
         id: tournament.uuid,
+        name: tournament.name,
         rootMatch: nullmatch,
         participants: []
     }

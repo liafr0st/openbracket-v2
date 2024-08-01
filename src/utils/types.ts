@@ -32,6 +32,7 @@ export interface HasResultProperties {
 
 export interface OBTournament {
     id: string;
+    name: string;
     rootMatch: OBMatch;
     participants: OBParticipant[];
 }
