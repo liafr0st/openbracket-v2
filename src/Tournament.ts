@@ -159,7 +159,7 @@ RETURN t`
     )
 
     const map = records.map<TournamentProperties>(function (record) : TournamentProperties {
-        return record.get("t")
+        return record.get("t").properties
     });
 
     const pwdHash = security.hashPassword(pwd+map[0].salt)

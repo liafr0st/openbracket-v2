@@ -1,2 +1,3 @@
 curl -X POST -d @test/tournamentcreate.json -H "Content-Type: application/json" http://localhost:8888/tournament
 curl -X GET -d @test/tournamentread.json -H "Content-Type: application/json" http://localhost:8888/tournament
+curl -X POST -d @test/tournamentlogin.json -H "Content-Type: application/json" http://localhost:8888/tournament/login
