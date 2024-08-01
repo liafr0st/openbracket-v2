@@ -1,5 +1,3 @@
-import { StringLiteral } from "typescript";
-
 export interface BracketStructure {
     rounds: number;
     positions: number[];

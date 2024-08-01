@@ -1,4 +1,3 @@
-import { nullmatch } from "./nullobjects";
 import { OpenBracketError } from "./OpenBracketError";
 import { BracketStructure, OBMatch } from "./types";
 

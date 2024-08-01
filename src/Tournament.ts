@@ -1,11 +1,9 @@
-import { Node, Relationship, Integer, DateTime } from "neo4j-driver";
 import cfg from "../config.json";
-import * as db from "./utils/db"
-import * as security from "./utils/security"
-import * as obmath from "./utils/obmath"
+import * as db from "./utils/db";
+import * as security from "./utils/security";
+import * as obmath from "./utils/obmath";
 import { Request } from 'express';
 import { OpenBracketError } from "./utils/OpenBracketError";
-import { StringLiteral } from "typescript";
 import { BracketStructure, HashTable, HasMatchProperties, HasResultProperties, MatchProperties, OBMatch, OBParticipantScorePair, OBTournament, ParticipantProperties, TournamentProperties } from "./utils/types";
 import { nullmatch } from "./utils/nullobjects";
 
@@ -35,6 +33,7 @@ export async function create(req: Request): Promise<void> {
     if (!name) { errstring += "No username specified\n" };
     if (!pwd) { errstring += "No password specified\n" };
     if (participantsCount < 2) { errstring += "Insufficient participants specified\n"};
+    if (participantsCount > 255) { errstring += "Too many participants specified (max. 255)\n"};
     if (errstring.length > 0) { throw new OpenBracketError(errstring) };
 
     security.checkPassword(pwd);
@@ -152,8 +151,8 @@ export async function login(req: Request) : Promise<void> {
     }
 
     const query : string = `\
-    MATCH (t:Tournament) WHERE ID(t) = $id
-    RETURN t`
+MATCH (t:Tournament) WHERE t.uuid = $id
+RETURN t`
 
     const { keys, records, summary } = await db.driver.executeQuery(
         query, queryParams, { database: cfg.neo4jdbname }
@@ -184,11 +183,11 @@ export async function read(req: Request) : Promise<OBTournament> {
     }
 
     const query : string = `\
-    MATCH (t:Tournament)-[:HAS_MATCH*1..8]->(m:Match) WHERE t.uuid = $id
-    OPTIONAL MATCH (t)-[:HAS_MATCH]->(rm:Match)
-    OPTIONAL MATCH (m)-[hasresult:HAS_RESULT]->(p:Participant)
-    OPTIONAL MATCH (m)-[hasmatch:HAS_MATCH]->(m2:Match)
-    RETURN t, rm, m, hasmatch, m2, hasresult, p`
+MATCH (t:Tournament)-[:HAS_MATCH*1..8]->(m:Match) WHERE t.uuid = $id
+OPTIONAL MATCH (t)-[:HAS_MATCH]->(rm:Match)
+OPTIONAL MATCH (m)-[hasresult:HAS_RESULT]->(p:Participant)
+OPTIONAL MATCH (m)-[hasmatch:HAS_MATCH]->(m2:Match)
+RETURN t, rm, m, hasmatch, m2, hasresult, p`
 
     const { keys, records, summary } = await db.driver.executeQuery(
         query, queryParams, { database: cfg.neo4jdbname }
