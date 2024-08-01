@@ -131,11 +131,6 @@ MERGE (${currMatchTxt})-[:HAS_RESULT {type: "lower"}]->(p${brktStruct.positions[
     // console.log(summary);
     // console.log(map);
 
-    const res : TournamentCreateRes = {
-        name: name,
-        id: map[0].uuid
-    }
-
     req.session.tournament = map[0].uuid;
 
 }
