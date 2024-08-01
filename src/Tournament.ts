@@ -9,11 +9,6 @@ import { StringLiteral } from "typescript";
 import { BracketStructure, HashTable, HasMatchProperties, HasResultProperties, MatchProperties, OBMatch, OBParticipantScorePair, OBTournament, ParticipantProperties, TournamentProperties } from "./utils/types";
 import { nullmatch } from "./utils/nullobjects";
 
-interface TournamentCreateRes {
-    name: string;
-    id: string;
-}
-
 interface TournamentCreateQuery {
     name: string;
     passwordHash: string;
@@ -21,7 +16,7 @@ interface TournamentCreateQuery {
     participants: string[];
 };
 
-export async function create(req: Request): Promise<TournamentCreateRes> {
+export async function create(req: Request): Promise<void> {
 
     // console.log("Start")
 
@@ -141,7 +136,7 @@ MERGE (${currMatchTxt})-[:HAS_RESULT {type: "lower"}]->(p${brktStruct.positions[
         id: map[0].uuid
     }
 
-    return res;
+    req.session.tournament = map[0].uuid;
 
 }
 
@@ -178,6 +173,8 @@ export async function login(req: Request) : Promise<void> {
     if (pwdHash != map[0].passwordHash) {
         throw new OpenBracketError("Incorrect password", 401)
     }
+
+    req.session.tournament = map[0].uuid;
 
 }
 
@@ -217,51 +214,62 @@ export async function read(req: Request) : Promise<OBTournament> {
     matchStack.push({id: rootMatch.uuid});
 
     for (let record of records) {
-        let match : MatchProperties = record.get("m2").properties
-        let parentMatch : MatchProperties = record.get("m").properties
-        let matchRel : HasMatchProperties = record.get("hasmatch").properties
-        let participant : ParticipantProperties = record.get("p").properties
-        let result : HasResultProperties = record.get("hasresult").properties
+        const parentMatch : MatchProperties = record.get("m").properties
 
-        if (!participantHashTable[participant.uuid]) {
-            participantHashTable[participant.uuid] = true;
-            res.participants.push({id: participant.uuid, name: participant.name})
-        }
+        if (record.get("m2")) {
+            const match : MatchProperties = record.get("m2").properties
+            const matchRel : HasMatchProperties = record.get("hasmatch").properties
 
-        let isParticipantUpper = (result.type == "upper") ? true : false;
-
-        let tempResult : OBParticipantScorePair = {
-            participantId: participant.uuid,
-            score: (result.score) ? result.score : undefined 
-        }
-
-        let matchFound = false;
-        let tempMatch : OBMatch;
-        for (let match_ of matchStack) {
-            if (matchFound) { continue };
-            if (match_.id == match.uuid) {
-                if (isParticipantUpper) { match_.resultUpper = tempResult } else { match_.resultLower = tempResult };
-                matchFound = true;
+            let matchFound = false;
+            let tempMatch : OBMatch;
+            for (let match_ of matchStack) {
+                if (matchFound) { continue };
+                if (match_.id == match.uuid) {
+                    matchFound = true;
+                }
+            }
+    
+            if (!matchFound) {
+                tempMatch = {
+                    id: match.uuid,
+                    parentId: parentMatch.uuid,
+                    type: matchRel.type
+                }
+                matchStack.push(tempMatch);
             }
         }
 
-        if (!matchFound) {
-            tempMatch = {
-                id: match.uuid,
-                resultUpper: (isParticipantUpper) ? tempResult : undefined,
-                resultLower: (isParticipantUpper) ? undefined : tempResult,
-                parentId: parentMatch.uuid,
-                type: matchRel.type
-            }
-            matchStack.push(tempMatch);
-        }
+        if (record.get("p")) {
+            const participant : ParticipantProperties = record.get("p").properties
+            const result : HasResultProperties = record.get("hasresult").properties
 
+            if (!participantHashTable[participant.uuid]) {
+                participantHashTable[participant.uuid] = true;
+                res.participants.push({id: participant.uuid, name: participant.name})
+            }
+    
+            let isParticipantUpper = (result.type == "upper") ? true : false;
+    
+            let tempResult : OBParticipantScorePair = {
+                participantId: participant.uuid,
+                score: (result.score) ? result.score : undefined 
+            }
+    
+            let parentMatchFound = false;
+            for (let match_ of matchStack) {
+                if (parentMatchFound) { continue };
+                if (match_.id == parentMatch.uuid) {
+                    if (isParticipantUpper) { match_.resultUpper = tempResult } else { match_.resultLower = tempResult };
+                    parentMatchFound = true;
+                }
+            }
+        }
     }
 
     while (matchStack.length > 1) {
         let match : OBMatch | undefined = matchStack.pop()
         if (!match) {
-            throw new OpenBracketError("Critical TS error", 500);
+            throw new OpenBracketError("Critical internal error", 500);
         }
         let isMatchUpper = (match.type == "upper") ? true : false;
 
@@ -269,6 +277,7 @@ export async function read(req: Request) : Promise<OBTournament> {
         for (let match_ of matchStack) {
             if (matchFound) { continue };
             if (match_.id == match.parentId) {
+                match.parentId = undefined;
                 if (isMatchUpper) { match_.matchUpper = match } else { match_.matchLower = match };
                 matchFound = true;
             }
@@ -276,7 +285,8 @@ export async function read(req: Request) : Promise<OBTournament> {
     }
     res.rootMatch = matchStack[0];
 
-    console.log(records)
+    // console.log(records)
+    // console.log(res)
 
     return res
 

@@ -64,3 +64,9 @@ Retrieved: 30/07/2024
 export interface HashTable<T> {
     [key: string]: T;
 }
+
+declare module "express-session" {
+    interface SessionData {
+        tournament?: string;
+    }
+}
