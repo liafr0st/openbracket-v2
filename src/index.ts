@@ -4,7 +4,9 @@ import session from 'express-session';
 import * as db from "./utils/db";
 import cfg from "../config.json";
 import * as Tournament from "./Tournament";
+import * as Match from "./Match";
 import { identifyError, OpenBracketError } from './utils/OpenBracketError';
+import { match } from 'assert';
 
 const app = express();
 app.use(
@@ -58,6 +60,18 @@ app.post("/tournament/login", async function (req: Request, res: Response) {
 app.get("/tournament", async function (req: Request, res: Response) {
     res.status(200);
     const u = await Tournament.read(req)
+        .catch(err => {
+            const e = identifyError(err)
+            res.status(e.code);
+            return e;
+        })
+    res.set('Content-Type', 'application/json');
+    res.send(u);
+});
+
+app.put("/tournament", async function (req: Request, res: Response) {
+    res.status(200);
+    const u = await Match.update(req)
         .catch(err => {
             const e = identifyError(err)
             res.status(e.code);

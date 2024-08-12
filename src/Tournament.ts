@@ -14,7 +14,7 @@ interface TournamentCreateQuery {
     participants: string[];
 };
 
-export async function create(req: Request): Promise<void> {
+export async function create(req: Request): Promise<string> {
 
     // console.log("Start")
 
@@ -132,13 +132,15 @@ MERGE (${currMatchTxt})-[:HAS_RESULT {type: "lower"}]->(p${brktStruct.positions[
 
     req.session.tournament = map[0].uuid;
 
+    return map[0].uuid;
+
 }
 
 interface TournamentReadQuery {
     id: number;
 };
 
-export async function login(req: Request) : Promise<void> {
+export async function login(req: Request) : Promise<string> {
 
     const id: number = req.body.id;
     const pwd: string = req.body.password;
@@ -169,6 +171,8 @@ RETURN t`
     }
 
     req.session.tournament = map[0].uuid;
+
+    return map[0].uuid;
 
 }
 
