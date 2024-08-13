@@ -4,7 +4,7 @@
     </div>
 </div>
 <div class="flex flex-row max-w-xl md:mx-auto my-3.5 items-center justify-center">
-    <p class="text-4xl text-white text-center align-middle h-18 w-480px px-4 py-2 mx-12">Create Tournament</p>
+    <p class="text-4xl text-white text-center align-middle h-10 w-480px px-4 py-2 mx-12">Create Tournament</p>
 </div>
 <div class="flex flex-row max-w-xl md:mx-auto my-3.5">
     <div class="grid gap-6 mb-6 grid-cols-2">
