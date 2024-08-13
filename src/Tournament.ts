@@ -7,6 +7,10 @@ import { OpenBracketError } from "./utils/OpenBracketError";
 import { BracketStructure, HashTable, HasMatchProperties, HasResultProperties, MatchProperties, OBMatch, OBParticipantScorePair, OBTournament, ParticipantProperties, TournamentProperties } from "./utils/types";
 import { nullmatch } from "./utils/nullobjects";
 
+interface TournamentId {
+    id: string
+}
+
 interface TournamentCreateQuery {
     name: string;
     passwordHash: string;
@@ -14,7 +18,7 @@ interface TournamentCreateQuery {
     participants: string[];
 };
 
-export async function create(req: Request): Promise<string> {
+export async function create(req: Request): Promise<TournamentId> {
 
     // console.log("Start")
 
@@ -30,7 +34,7 @@ export async function create(req: Request): Promise<string> {
 
     let errstring: string = "";
 
-    if (!name) { errstring += "No username specified\n" };
+    if (!name) { errstring += "No tournament name specified\n" };
     if (!pwd) { errstring += "No password specified\n" };
     if (participantsCount < 2) { errstring += "Insufficient participants specified\n"};
     if (participantsCount > 255) { errstring += "Too many participants specified (max. 255)\n"};
@@ -132,7 +136,7 @@ MERGE (${currMatchTxt})-[:HAS_RESULT {type: "lower"}]->(p${brktStruct.positions[
 
     req.session.tournament = map[0].uuid;
 
-    return map[0].uuid;
+    return {id: map[0].uuid};
 
 }
 
@@ -140,7 +144,7 @@ interface TournamentReadQuery {
     id: number;
 };
 
-export async function login(req: Request) : Promise<string> {
+export async function login(req: Request) : Promise<TournamentId> {
 
     const id: number = req.body.id;
     const pwd: string = req.body.password;
@@ -172,7 +176,7 @@ RETURN t`
 
     req.session.tournament = map[0].uuid;
 
-    return map[0].uuid;
+    return {id: map[0].uuid};
 
 }
 

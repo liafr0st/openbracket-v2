@@ -3,5 +3,12 @@ import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [sveltekit(), tailwindcss()]
+	plugins: [sveltekit(), tailwindcss()],
+	server: {
+		fs: {
+			allow: [
+				"./obconfig.json"
+			]
+		}
+	}
 });

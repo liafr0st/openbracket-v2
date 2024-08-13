@@ -6,10 +6,15 @@ import cfg from "../config.json";
 import * as Tournament from "./Tournament";
 import * as Match from "./Match";
 import { identifyError, OpenBracketError } from './utils/OpenBracketError';
-import { match } from 'assert';
+import cors from 'cors';
+
+var corsOptions = {
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 
 const app = express();
-app.use(
+app.use(cors(corsOptions),
     bodyParser.json(),
     session({
         name: 'session',
