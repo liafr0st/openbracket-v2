@@ -43,7 +43,6 @@
 </svelte:head>
 
 <script>
-    import cfg from "../../../obconfig.json";
     export function view() {
 
         console.log("View")
