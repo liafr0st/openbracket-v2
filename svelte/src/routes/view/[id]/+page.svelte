@@ -48,3 +48,57 @@
         }
     </style>
 </svelte:head>
+
+<script>
+    import cfg from "../../../../obconfig.json";
+    import { page } from '$app/stores';
+    import { onMount } from 'svelte';
+
+    onMount(() => {
+
+        if (!$page.params.id) {
+            window.location.replace(`/`);
+        }
+
+        const params = {id: $page.params.id}
+
+        const requestOptions = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        };
+
+        let bracket;
+
+        // @ts-ignore
+        fetch(`${cfg["obapi-url"]}/validate?` + new URLSearchParams(params), requestOptions)
+                .then(response => {
+                    if (response.ok) {
+                        window.location.replace(`/admin/${$page.params.id}`);
+                    }
+                    // @ts-ignore
+                    fetch(`${cfg["obapi-url"]}/tournament?` + new URLSearchParams(params), requestOptions)
+                            .then(response => {
+                                if (!response.ok) {
+                                    // @ts-ignore
+                                    response.json()
+                                        .then(val => {
+                                            throw new Error(val.flavor);
+                                        })
+                                        .catch(error => {
+                                            throw new Error("Response not OK (unknown)");
+                                        })
+                                }
+                                response.json()
+                                    .then(val => {
+                                        bracket = val;
+                                    })
+                            })
+                })
+                .catch(error => {
+                    console.error(error);
+                })
+    })
+</script>

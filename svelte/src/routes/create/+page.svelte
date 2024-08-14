@@ -60,13 +60,13 @@
             isSeeded: document.getElementById("t_seeded").checked
         };
 
-        console.log(data)
-
         const requestOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Access-Control-Expose-Headers': 'Set-Cookie'
             },
+            credentials: 'include',
             body: JSON.stringify(data),
         };
 
@@ -85,7 +85,7 @@
                 else {
                     response.json()
                         .then(val => {
-                            window.location.replace(`/admin?id=${val.id}`);
+                            window.location.replace(`/admin/${val.id}`);
                         })
                         .catch(error => {
                             throw new Error("Response JSON malformed");
