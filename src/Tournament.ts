@@ -141,12 +141,12 @@ MERGE (${currMatchTxt})-[:HAS_RESULT {type: "lower"}]->(p${brktStruct.positions[
 }
 
 interface TournamentReadQuery {
-    id: number;
+    id: string;
 };
 
 export async function login(req: Request) : Promise<TournamentId> {
 
-    const id: number = req.body.id;
+    const id: string = req.body.id;
     const pwd: string = req.body.password;
 
     if (!id) { throw new OpenBracketError("No tournament specified") };
@@ -182,7 +182,14 @@ RETURN t`
 
 export async function read(req: Request) : Promise<OBTournament> {
     
-    const id: number = req.body.id;
+    let id : string = "";
+    if (req.query.id) {
+        if (typeof req.query.id != "string") {
+            console.log(typeof req.query.id)
+            throw new OpenBracketError("No tournament specified")
+        }
+        id = req.query.id;
+    }
 
     if (!id) { throw new OpenBracketError("No tournament specified") };
 

@@ -7,10 +7,12 @@ import * as Tournament from "./Tournament";
 import * as Match from "./Match";
 import { identifyError, OpenBracketError } from './utils/OpenBracketError';
 import cors from 'cors';
+import { validateHeaderName } from 'http';
 
 var corsOptions = {
     origin: 'http://localhost:5173',
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+    optionsSuccessStatus: 200,
+    credentials: true
 }
 
 const app = express();
@@ -37,6 +39,25 @@ app.get("/", async function (req: Request, res: Response) {
     res.set('Content-Type', 'application/json');
     res.send({msg: "hello world"})
 });
+
+app.get("/validate", async function (req: Request, res: Response) {
+    res.status(200);
+    const u = await validateSession(req)
+        .catch(err => {
+            const e = identifyError(err)
+            res.status(e.code);
+            return e;
+        })
+    res.set('Content-Type', 'application/json');
+    res.send(u)
+});
+
+async function validateSession(req : Request) : Promise<string> {
+    if (!req.session.tournament || req.query.id != req.session.tournament) {
+        throw new OpenBracketError("Session invalid", 401)
+    }
+    return "ok";
+}
 
 app.post("/tournament", async function (req: Request, res: Response) {
     res.status(200);
