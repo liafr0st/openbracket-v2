@@ -262,7 +262,7 @@ RETURN t, rm, m, hasmatch, m2, hasresult, p`
     
             let tempResult : OBParticipantScorePair = {
                 participantId: participant.uuid,
-                score: (result.score) ? result.score : undefined 
+                score: (typeof result.score == "number") ? result.score : undefined 
             }
     
             let parentMatchFound = false;

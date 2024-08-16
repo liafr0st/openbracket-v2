@@ -42,13 +42,11 @@ export async function update(req : Request) : Promise<void> {
     let query : string = `\
 MATCH (t:Tournament)-[:HAS_MATCH*1..8]->(m:Match) WHERE t.uuid = $tournamentId AND m.uuid = $id
 MATCH (pUpper:Participant)<-[upper:HAS_RESULT {type: "upper"}]-(m)-[lower:HAS_RESULT {type: "lower"} ]->(pLower:Participant)
+MATCH (parentMatch:Match)-[hasmatch:HAS_MATCH]->(m)
 SET upper.score = $scoreUpper
 SET lower.score = $scoreLower
-OPTIONAL MATCH (parentMatchUpper:Match)-[:HAS_MATCH {type: "upper"}]->(m)
-MERGE (parentMatchUpper)-[:HAS_RESULT {type: "upper"}]->($${winner})
-OPTIONAL MATCH (parentMatchLower:Match)-[:HAS_MATCH {type: "lower"}]->(m)
-MERGE (parentMatchLower)-[:HAS_RESULT {type: "lower"}]->($${winner})
-RETURN pUpper, upper, m, lower, pLower, parentMatchUpper, parentMatchLower`
+MERGE (parentMatch)-[:HAS_RESULT {type: hasmatch.type}]->(${winner})
+RETURN pUpper, upper, m, lower, pLower, parentMatch`
 
     const { keys, records, summary } = await db.driver.executeQuery(
         query, queryParams, { database: cfg.neo4jdbname }
