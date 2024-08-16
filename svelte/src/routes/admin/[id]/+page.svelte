@@ -8,12 +8,6 @@
             Export Tournament
         </button>
     </div>
-    <div class="flex flex-row w-full my-6">
-        <button 
-            class="text-2xl leading-[52px] text-white text-center align-middle bg-ob-gray border-4 border-white hover:bg-white hover:bg-opacity-10 h-18 w-3/4 px-4 py-2 mx-12 rounded-full">
-            Export Participants
-        </button>
-    </div>
     <div class="absolute w-full bottom-0">
         <div class="flex flex-row w-full my-6">
             <a 
@@ -34,6 +28,7 @@
 <div class="top-0 mx-[21.875%] w-[78.125%] xl:w-[100%-420px] xl:mx-[420px] bg-white"></div>
 
 <svelte:head>
+    <title>OpenBracket - Admin</title>
     <style>
         :root {
             background-color: white;

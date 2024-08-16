@@ -32,6 +32,7 @@
 </div>
 
 <svelte:head>
+    <title>OpenBracket - Import</title>
     <style>
         :root {
             background-color: #333333;

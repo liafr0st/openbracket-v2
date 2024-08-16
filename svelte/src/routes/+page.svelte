@@ -18,6 +18,7 @@
 </div>
 
 <svelte:head>
+    <title>OpenBracket</title>
     <style>
         :root {
             background-color: #333333;
