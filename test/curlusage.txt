@@ -1,3 +1,4 @@
 curl -X POST -d @test/tournamentcreate.json -H "Content-Type: application/json" -v http://localhost:8888/tournament
 curl -X GET -d @test/tournamentread.json -H "Content-Type: application/json" http://localhost:8888/tournament
 curl -X POST -d @test/tournamentlogin.json -H "Content-Type: application/json" -v http://localhost:8888/tournament/login
+curl -X PUT -d @test/matchupdate.json -H "Content-Type: application/json" -H "Cookie: session=s%3AifpiiVJQvlqM728rRTVaQ2CYalEWMBSI.10Yiaqquis7SLlpx2focgd5DWicARSgkp6yZaaHMrpk" -v http://localhost:8888/tournament
