@@ -32,7 +32,11 @@
         </div>
     </div>
 </div>
-<div id="bracket" class="top-0 mx-[21.875%] w-[78.125%] xl:w-[100%-420px] xl:mx-[420px] bg-white"></div>
+<div id="bracket" class="top-0 mx-[21.875%] w-[78.125%] xl:w-[100%-420px] xl:mx-[420px] bg-white">
+    {#key parsedBracket}
+        <Bracket {parsedBracket}></Bracket>
+    {/key}
+</div>
 <div id="login_modal" class="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-60 z-20 hidden">
     <div class="grid w-[420px] h-screen place-items-center mx-auto">
         <div class="bg-ob-gray w-full h-[192px] rounded-[48px]">
@@ -43,7 +47,8 @@
             </div>
             <div class="flex flex-row w-full my-4 items-center justify-center">
                 <button 
-                    class="text-2xl text-ob-gray text-center align-middle bg-white border-4 border-white hover:bg-opacity-90 h-12 w-3/4 px-4 py-2 mx-8 rounded-full" on:click={() => login()}>
+                    class="text-2xl text-ob-gray text-center align-middle bg-white border-4 border-white hover:bg-opacity-90 h-12 w-3/4 px-4 py-2 mx-8 rounded-full"
+                    on:click={() => login()}>
                     Submit
                 </button>
             </div>
@@ -67,6 +72,7 @@
     import cfg from "../../../../obconfig.json";
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
+    import Bracket from '../../../components/Bracket.svelte';
 
     export function login_modal_up() {
         document.getElementById("login_modal").style.display = "block";
@@ -140,6 +146,87 @@
 
     }
 
+    // @ts-ignore
+    let roundNames = [];
+    // @ts-ignore
+    let matches = [];
+    $: parsedBracket = {
+        // @ts-ignore
+        roundNames: roundNames,
+        // @ts-ignore
+        matches: matches
+    }
+
+    // @ts-ignore
+    export function parseBracket(b) {
+
+        let rounds = 1;
+        const rMatch = b.rootMatch;
+        let m = rMatch
+
+        while (m.matchUpper) {
+            rounds++;
+            m = m.matchUpper
+        }
+        if (m.matchLower) {
+            rounds++;
+        }
+
+        roundNames = [];
+        matches = [];
+
+        for (let i=1; i<=rounds; i++) {
+            roundNames.push(`Round ${i}`)
+            matches.push([]);
+        }
+
+        roundNames[roundNames.length-1] = "Grand Final"
+
+        if (roundNames.length >= 2) {
+            roundNames[roundNames.length-2] = "Semifinals"
+        }
+
+        // @ts-ignore
+        matches = parseMatches(rMatch, matches, 0)
+
+        for (let round = 0; round < roundNames.length; round++) {
+            for (let match = 0; match < matches[round].length; match++) {
+                if (matches[round][match].resultUpper) {
+                    matches[round][match].resultUpper["participantName"] = convertIdToParticipant(matches[round][match].resultUpper["participantId"], b.participants)
+                }
+                if (matches[round][match].resultLower) {
+                    matches[round][match].resultLower["participantName"] = convertIdToParticipant(matches[round][match].resultLower["participantId"], b.participants)
+                }
+            }
+        }
+
+    }
+
+    // @ts-ignore
+    export function convertIdToParticipant(id, participants) {
+        for (let p of participants) {
+            if (p.id == id) {
+                return p.name
+            }
+        }
+    }
+
+    // @ts-ignore
+    export function parseMatches(m, matches, depth) {
+        matches[matches.length-1-depth].push(m)
+        if (m.matchUpper) {
+            matches = parseMatches(m.matchUpper, matches, depth+1)
+        } else if (depth != matches.length-1) {
+            matches[matches.length-2-depth].push(0)
+        }
+        if (m.matchLower) {
+            matches = parseMatches(m.matchLower, matches, depth+1)
+        } else if (depth != matches.length-1) {
+            matches[matches.length-2-depth].push(0)
+        }
+        return matches
+    }
+
     onMount(() => {
 
         window.onclick = function (event) {
@@ -183,6 +270,7 @@
                                 response.json()
                                     .then(val => {
                                         bracket = val;
+                                        parseBracket(bracket);
                                     })
                             })
                 })
