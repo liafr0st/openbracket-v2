@@ -4,13 +4,15 @@
     </div>
     <div class="flex flex-row w-full my-6">
         <button 
-            class="text-2xl leading-[52px] text-ob-gray text-center align-middle bg-white border-4 border-white hover:bg-opacity-90 h-18 w-3/4 px-4 py-2 mx-12 rounded-full" on:click={() => login_modal_up()}>
+            class="text-2xl leading-[52px] text-ob-gray text-center align-middle bg-white border-4 border-white hover:bg-opacity-90 h-18 w-3/4 px-4 py-2 mx-12 rounded-full"
+            on:click={() => login_modal_up()}>
             Log In As Admin
         </button>
     </div>
     <div class="flex flex-row w-full my-6">
         <button
-            class="text-2xl leading-[52px] text-white text-center align-middle bg-ob-gray border-4 border-white hover:bg-white hover:bg-opacity-10 h-18 w-3/4 px-4 py-2 mx-12 rounded-full">
+            class="text-2xl leading-[52px] text-white text-center align-middle bg-ob-gray border-4 border-white hover:bg-white hover:bg-opacity-10 h-18 w-3/4 px-4 py-2 mx-12 rounded-full"
+            on:click={() => t_export()}>
             Export Tournament
         </button>
     </div>
@@ -30,7 +32,7 @@
         </div>
     </div>
 </div>
-<div class="top-0 mx-[21.875%] w-[78.125%] xl:w-[100%-420px] xl:mx-[420px] bg-white"></div>
+<div id="bracket" class="top-0 mx-[21.875%] w-[78.125%] xl:w-[100%-420px] xl:mx-[420px] bg-white"></div>
 <div id="login_modal" class="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-60 z-20 hidden">
     <div class="grid w-[420px] h-screen place-items-center mx-auto">
         <div class="bg-ob-gray w-full h-[192px] rounded-[48px]">
@@ -121,6 +123,23 @@
 
     }
 
+    // @ts-ignore
+    let bracket;
+
+    export function t_export() {
+        // @ts-ignore
+        const blob = new Blob([JSON.stringify(bracket, null, 2)], {
+            type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${$page.params.id}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+    }
+
     onMount(() => {
 
         window.onclick = function (event) {
@@ -141,8 +160,6 @@
             },
             credentials: 'include',
         };
-
-        let bracket;
 
         // @ts-ignore
         fetch(`${cfg["obapi-url"]}/validate?` + new URLSearchParams(params), requestOptions)
