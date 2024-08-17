@@ -10,7 +10,11 @@ interface MatchUpdateQuery {
     scoreLower: number;
 }
 
-export async function update(req : Request) : Promise<void> {
+interface OK {
+    ok: boolean
+}
+
+export async function update(req : Request) : Promise<OK> {
 
     const id: string = req.body.id;
     const tournamentId: string | undefined = req.session.tournament;
@@ -53,5 +57,7 @@ RETURN pUpper, upper, m, lower, pLower, parentMatch`
     )
 
     if (!records[0].get("m")) { throw new OpenBracketError("Not logged in or match does not exist", 401) }
+
+    return {ok: true}
 
 }
