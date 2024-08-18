@@ -57,7 +57,8 @@
 
     export let parsedBracket = {
         roundNames: [],
-        matches: [[]]
+        matches: [[]],
+        doReports: false
     };
 
     let mPlayer1 = "Player 1";
@@ -90,7 +91,7 @@
     export function match_modal_up(round, match) {
         // @ts-ignore
         focusMatch = parsedBracket.matches[round][match]
-        if (focusMatch.resultUpper && focusMatch.resultLower && !focusMatch.resultUpper.score && !focusMatch.resultLower.score) {
+        if (focusMatch.resultUpper && focusMatch.resultLower && !focusMatch.resultUpper.score && !focusMatch.resultLower.score && parsedBracket.doReports) {
             mPlayer1 = focusMatch.resultUpper.participantName;
             mPlayer2 = focusMatch.resultLower.participantName;
         // @ts-ignore

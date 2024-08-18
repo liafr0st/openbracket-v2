@@ -2,27 +2,19 @@
     <div id="mainimg" class="w-full py-4 my-4">
         <img class="object-contain w-1/3 mx-auto" src="\logo-white-tp.png" alt="OpenBracket Logo">
     </div>
-    <div class="flex flex-row w-full my-6">
-        <button
-            class="text-2xl leading-[52px] text-white text-center align-middle bg-ob-gray border-4 border-white hover:bg-white hover:bg-opacity-10 h-18 w-3/4 px-4 py-2 mx-12 rounded-full"
-            on:click={() => t_export()}>
-            Export Tournament
-        </button>
-    </div>
     <div class="absolute w-full bottom-0">
         <div class="flex flex-row w-full my-6">
             <a 
-                class="btn text-2xl leading-[52px] text-ob-gray text-center align-middle bg-white border-4 border-white hover:bg-opacity-90 h-18 w-3/4 px-4 py-2 mx-12 rounded-full" 
+                class="btn text-2xl leading-[52px] text-ob-gray text-center align-middle bg-white border-4 border-white hover:bg-opacity-90 h-18 w-3/4 px-4 py-2 mx-12 rounded-full"
                 href="/create">
                 Create Tournament
             </a>
         </div>
         <div class="flex flex-row w-full my-6">
             <a 
-                class="btn text-2xl leading-[52px] text-white text-center align-middle bg-ob-gray border-4 border-white hover:bg-white hover:bg-opacity-10 h-18 w-3/4 px-4 py-2 mx-12 rounded-full" 
+                class="btn text-2xl leading-[52px] text-white text-center align-middle bg-ob-gray border-4 border-white hover:bg-white hover:bg-opacity-10 h-18 w-3/4 px-4 py-2 mx-12 rounded-full"
                 href="/import">
-                Import Tournament
-            </a>
+                Import Tournament</a>
         </div>
     </div>
 </div>
@@ -33,7 +25,7 @@
 </div>
 
 <svelte:head>
-    <title>OpenBracket - Admin</title>
+    <title>OpenBracket - View</title>
     <style>
         :root {
             background-color: white;
@@ -45,20 +37,20 @@
 </svelte:head>
 
 <script>
-    import cfg from "../../../../obconfig.json";
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import Bracket from '../../../components/Bracket.svelte';
+    import { browser } from '$app/environment'
 
-    // @ts-ignore
     let bracket;
-    let doReports = true;
 
-    /*
-    Reference: https://www.30secondsofcode.org/js/s/json-to-file/
-    Published: 14/12/2017
-    Retrieved: 16/08/2024
-    */
+    if (browser) {
+        const i = localStorage.getItem('bracket');
+        bracket = JSON.parse(i)
+    }
+    
+    const j = "test";
+
     export function t_export() {
         // @ts-ignore
         const blob = new Blob([JSON.stringify(bracket, null, 2)], {
@@ -70,6 +62,7 @@
         a.download = `${$page.params.id}.json`;
         a.click();
         URL.revokeObjectURL(url);
+
     }
 
     // @ts-ignore
@@ -80,8 +73,7 @@
         // @ts-ignore
         roundNames: roundNames,
         // @ts-ignore
-        matches: matches,
-        doReports : doReports
+        matches: matches
     }
 
     // @ts-ignore
@@ -155,59 +147,7 @@
     }
 
     onMount(() => {
+        parseBracket(bracket);
 
-        if (!$page.params.id) {
-            window.location.replace(`/`);
-        }
-
-        const params = {id: $page.params.id}
-
-        const requestOptions = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        };
-
-        // @ts-ignore
-        fetch(`${cfg["obapi-url"]}/validate?` + new URLSearchParams(params), requestOptions)
-                .then(response => {
-                    if (!response.ok) {
-                        // @ts-ignore
-                        response.json()
-                            .then(val => {
-                                if (val.code != 401) {
-                                    throw new Error(val.flavor);
-                                }
-                                window.location.replace(`/view/${$page.params.id}`);
-                            })
-                            .catch(error => {
-                                throw new Error("Response not OK (unknown)");
-                            })
-                    }
-                    // @ts-ignore
-                    fetch(`${cfg["obapi-url"]}/tournament?` + new URLSearchParams(params), requestOptions)
-                        .then(response => {
-                            if (!response.ok) {
-                                // @ts-ignore
-                                response.json()
-                                    .then(val => {
-                                        throw new Error(val.flavor);
-                                    })
-                                    .catch(error => {
-                                        throw new Error("Response not OK (unknown)");
-                                    })
-                            }
-                            response.json()
-                                .then(val => {
-                                    bracket = val;
-                                    parseBracket(bracket);
-                                })
-                        })
-                })
-                .catch(error => {
-                    console.error(error);
-                })
     })
 </script>
