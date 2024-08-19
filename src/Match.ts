@@ -46,7 +46,7 @@ export async function update(req : Request) : Promise<OK> {
     let query : string = `\
 MATCH (t:Tournament)-[:HAS_MATCH*1..8]->(m:Match) WHERE t.uuid = $tournamentId AND m.uuid = $id
 MATCH (pUpper:Participant)<-[upper:HAS_RESULT {type: "upper"}]-(m)-[lower:HAS_RESULT {type: "lower"} ]->(pLower:Participant)
-MATCH (parentMatch:Match)-[hasmatch:HAS_MATCH]->(m)
+OPTIONAL MATCH (parentMatch:Match)-[hasmatch:HAS_MATCH]->(m)
 SET upper.score = $scoreUpper
 SET lower.score = $scoreLower
 MERGE (parentMatch)-[:HAS_RESULT {type: hasmatch.type}]->(${winner})
