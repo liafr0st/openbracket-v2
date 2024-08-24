@@ -86,7 +86,7 @@ MERGE (${currMatchTxt})<-[:HAS_MATCH {type: "${isUpper}"}]-(${prevMatchTxt})\n`
     }
 
     if (brktStruct.rounds >= 2) {
-        for (let i = 0; i<Math.pow(brktStruct.rounds-1,2); i++) {
+        for (let i = 0; i<Math.pow(2,brktStruct.rounds-1); i++) {
 
             // console.log(`First Round: r${brktStruct.rounds-1}m${i}`)
             let isUpper : string = (i%2==0) ? "upper" : "lower";
@@ -94,7 +94,7 @@ MERGE (${currMatchTxt})<-[:HAS_MATCH {type: "${isUpper}"}]-(${prevMatchTxt})\n`
             let currMatchTxt : string = `r${brktStruct.rounds-1}m${i}`
 
             if (brktStruct.positions[2*i]==-1 || brktStruct.positions[2*i+1]==-1) {
-                query = query + `MERGE (${prevMatchTxt})-[:HAS_RESULT {type: "upper"}]->(p${brktStruct.positions[2*i]})\n`
+                query = query + `MERGE (${prevMatchTxt})-[:HAS_RESULT {type: "${(i%2) ? "lower" : "upper"}"}]->(p${brktStruct.positions[2*i]})\n`
                 continue
             };
     
