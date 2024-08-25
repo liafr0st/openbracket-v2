@@ -37,7 +37,7 @@ db.startup();
 app.get("/", async function (req: Request, res: Response) {
     res.status(200);
     res.set('Content-Type', 'application/json');
-    res.send({msg: "hello world"})
+    res.send({ok: true})
 });
 
 app.get("/validate", async function (req: Request, res: Response) {
