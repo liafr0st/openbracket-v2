@@ -105,12 +105,16 @@ MERGE (${currMatchTxt})-[:HAS_RESULT {type: "upper"}]->(p${brktStruct.positions[
 MERGE (${currMatchTxt})-[:HAS_RESULT {type: "lower"}]->(p${brktStruct.positions[2*i+1]})\n`
 
         }
+    } else {
+        query = query + `\
+MERGE (r0m0)-[:HAS_RESULT {type: "upper"}]->(p0)
+MERGE (r0m0)-[:HAS_RESULT {type: "lower"}]->(p1)\n`
     }
     query = query + "RETURN t";
 
     // console.log("Matches Genned")
 
-    // console.log(query)
+    console.log(query)
 
     // console.log("Query Printed")
 
